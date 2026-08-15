@@ -25,8 +25,8 @@
     .house-container {
       position: relative; width: 100%; max-width: 960px; aspect-ratio: 16 / 9;
       background-color: #1a1423;
-      /* Imagen de fondo actualizada */
-      background-image: url('/Imagenes/1786676817289.png');
+      /* Ruta relativa corregida (sin la barra inicial) */
+      background-image: url('Imagenes/1786676817289.png');
       background-size: cover; background-position: center;
       image-rendering: pixelated; border: 4px solid #3d2d47;
       border-radius: 6px; box-shadow: 0 10px 35px rgba(0,0,0,0.85); overflow: hidden;
@@ -93,7 +93,8 @@
   <main class="house-container">
     <div class="fireplace-wrapper">
       <div class="fireplace-glow"></div>
-      <img id="fireplace-img" src="/Imagenes/Animacion-chimenea/chimenea1.png" alt="Chimenea" class="fireplace-img">
+      <!-- Ruta corregida -->
+      <img id="fireplace-img" src="Imagenes/Animacion-chimenea/chimenea1.png" alt="Chimenea" class="fireplace-img">
     </div>
 
     <button id="spot-herbolario" class="hotspot" onclick="abrirSeccion('herbolario')"></button>
@@ -112,8 +113,8 @@
   </div>
 
   <script>
-    // Música con codificación de espacios (%20)
-    const musicUrl = "/Musica/Morning%20in%20the%20Glen%20(Remix).mp3"; 
+    // Música corregida (usando %20 para los espacios)
+    const musicUrl = "Musica/Morning%20in%20the%20Glen%20(Remix).mp3"; 
     let bgAudio = null;
 
     function initAudio() {
@@ -126,7 +127,7 @@
     }
 
     // Animación chimenea
-    const localBaseUrl = "/Imagenes/Animacion-chimenea/"; 
+    const localBaseUrl = "Imagenes/Animacion-chimenea/"; 
     const maxPossibleFrames = 12; 
     const loadedImages = [];
 
