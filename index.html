@@ -148,27 +148,34 @@
       herbolario: { titulo: "🌿 Herbolario", contenido: "<p>Contenido sobre hierbas...</p>" },
       bosque: { titulo: "🌲 El Bosque", contenido: "<p>Contenido sobre permacultura...</p>" },
       fuego: { titulo: "🔥 Fuego", contenido: "<p>El calor del hogar.</p>" },
-      musica: { titulo: "🎶 Música", contenido: "<audio controls loop src='"+musicUrl+"' style='width:100%'></audio>" },
+      /* Se agrega id="modal-player" y evento onplay para detener la música ambiental únicamente al pulsar Play */
+      musica: { titulo: "🎶 Música", contenido: "<audio id='modal-player' controls loop src='"+musicUrl+"' style='width:100%' onplay='pausarFondo()'></audio>" },
       conocimiento: { titulo: "📜 Conocimiento", contenido: "<p>Tarot y Tao.</p>" }
     };
 
-    function abrirSeccion(clave) {
-      if (!secciones[clave]) return;
-
-      // SOLO si la clave es 'musica', pausamos el fondo
-      if (clave === 'musica' && bgAudio) {
+    function pausarFondo() {
+      if (bgAudio) {
         bgAudio.pause();
       }
+    }
 
+    function abrirSeccion(clave) {
+      if (!secciones[clave]) return;
       document.getElementById('modal-title').innerHTML = secciones[clave].titulo;
       document.getElementById('modal-body').innerHTML = secciones[clave].contenido;
       document.getElementById('modal').classList.add('active');
     }
 
     function cerrarModal() {
+      // Si el reproductor manual del modal está activo, lo pausamos al cerrar
+      const player = document.getElementById('modal-player');
+      if (player) {
+        player.pause();
+      }
+      
       document.getElementById('modal').classList.remove('active');
       
-      // Al cerrar, volvemos a poner la música de fondo automáticamente
+      // Reanudamos la música ambiental
       if (bgAudio) {
         bgAudio.play().catch(() => {});
       }
