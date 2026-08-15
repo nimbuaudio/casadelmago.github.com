@@ -67,6 +67,21 @@
       100% { opacity: 1.0; transform: translateX(-50%) scale(1.10); }
     }
 
+    /* Botón flotante para silenciar/activar música ambiental */
+    .audio-control-btn {
+      position: absolute; top: 15px; right: 15px; z-index: 30;
+      background: rgba(35, 26, 46, 0.85); border: 2px solid var(--accent-gold);
+      color: var(--accent-gold); border-radius: 50%; width: 42px; height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 1.2rem; transition: all 0.2s ease;
+      backdrop-filter: blur(4px); outline: none;
+    }
+
+    .audio-control-btn:hover, .audio-control-btn:focus-visible {
+      background: var(--accent-gold); color: var(--bg-dark);
+      box-shadow: 0 0 10px rgba(200, 159, 101, 0.5);
+    }
+
     .modal-overlay {
       display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(10, 8, 15, 0.85); backdrop-filter: blur(5px); z-index: 100;
@@ -93,19 +108,25 @@
   <div id="audio-vault" style="display:none;"></div>
 
   <main class="house-container">
+    <!-- Botón de Control de Audio Ambiental -->
+    <button id="toggle-audio-btn" class="audio-control-btn" onclick="toggleAudio()" aria-label="Activar o desactivar música de fondo" title="Música ambiental">
+      🔊
+    </button>
+
     <div class="fireplace-wrapper">
       <div class="fireplace-glow"></div>
       <img id="fireplace-img" src="./public/Imagenes/Animacion-chimenea/chimenea1.png" alt="Chimenea" class="fireplace-img">
     </div>
 
-    <button id="spot-herbolario" class="hotspot" onclick="abrirSeccion('herbolario')"></button>
-    <button id="spot-bosque" class="hotspot" onclick="abrirSeccion('bosque')"></button>
-    <button id="spot-fuego" class="hotspot" onclick="abrirSeccion('fuego')"></button>
-    <button id="spot-musica" class="hotspot" onclick="abrirSeccion('musica')"></button>
-    <button id="spot-conocimiento" class="hotspot" onclick="abrirSeccion('conocimiento')"></button>
+    <!-- Puntos interactivos con atributos de accesibilidad -->
+    <button id="spot-herbolario" class="hotspot" onclick="abrirSeccion('herbolario')" aria-label="Abrir Herbolario"></button>
+    <button id="spot-bosque" class="hotspot" onclick="abrirSeccion('bosque')" aria-label="Ir al Bosque"></button>
+    <button id="spot-fuego" class="hotspot" onclick="abrirSeccion('fuego')" aria-label="Ver el Fuego"></button>
+    <button id="spot-musica" class="hotspot" onclick="abrirSeccion('musica')" aria-label="Abrir Reproductor de Música"></button>
+    <button id="spot-conocimiento" class="hotspot" onclick="abrirSeccion('conocimiento')" aria-label="Consultar Conocimiento"></button>
   </main>
 
-  <div id="modal" class="modal-overlay" onclick="if(event.target.id==='modal') cerrarModal()">
+  <div id="modal" class="modal-overlay" onclick="if(event.target.id==='modal') cerrarModal()" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-card">
       <h2 id="modal-title" class="modal-title">Título</h2>
       <div id="modal-body">Cargando...</div>
@@ -117,38 +138,62 @@
     const musicUrl = "./public/Musica/Morning%20in%20the%20Glen%20(Remix).mp3"; 
     let bgAudio = null;
     let modalAudio = null;
-    let userPlayedModalAudio = false;
+    let isMutedByUser = false;
 
+    // Inicialización e interacciones de audio
     function initAudio() {
       if (!bgAudio) {
         bgAudio = new Audio(musicUrl);
         bgAudio.loop = true;
         bgAudio.volume = 0.4;
       }
-      if (!userPlayedModalAudio) {
-        bgAudio.play().catch(e => console.log("Esperando interacción", e));
+      
+      const isModalAudioPlaying = modalAudio && !modalAudio.paused;
+      if (!isModalAudioPlaying && !isMutedByUser && bgAudio.paused) {
+        bgAudio.play().catch(e => console.log("Esperando interacción del usuario", e));
       }
     }
 
+    function toggleAudio() {
+      if (!bgAudio) initAudio();
+      
+      const btn = document.getElementById('toggle-audio-btn');
+      if (bgAudio.paused) {
+        isMutedByUser = false;
+        if (!(modalAudio && !modalAudio.paused)) {
+          bgAudio.play();
+        }
+        btn.textContent = "🔊";
+        btn.setAttribute('aria-label', "Silenciar música de fondo");
+      } else {
+        isMutedByUser = true;
+        bgAudio.pause();
+        btn.textContent = "🔇";
+        btn.setAttribute('aria-label', "Activar música de fondo");
+      }
+    }
+
+    // Preloader optimizado para la animación de la chimenea
     const localBaseUrl = "./public/Imagenes/Animacion-chimenea/"; 
     const maxPossibleFrames = 12; 
-    const loadedImages = [];
+    const validFrames = [];
+
     for (let i = 1; i <= maxPossibleFrames; i++) {
       const img = new Image();
       img.src = `${localBaseUrl}chimenea${i}.png`;
-      img.onload = () => { loadedImages[i - 1] = img; };
+      img.onload = () => { validFrames.push(img.src); };
     }
 
     let currentFrameIndex = 0;
     const fireplaceElement = document.getElementById('fireplace-img');
     setInterval(() => {
-      const activeFrames = loadedImages.filter(Boolean);
-      if (activeFrames.length > 0) {
-        currentFrameIndex = (currentFrameIndex + 1) % activeFrames.length;
-        fireplaceElement.src = activeFrames[currentFrameIndex].src;
+      if (validFrames.length > 0) {
+        currentFrameIndex = (currentFrameIndex + 1) % validFrames.length;
+        fireplaceElement.src = validFrames[currentFrameIndex];
       }
     }, 120);
 
+    // Contenido de secciones
     const secciones = {
       herbolario: { titulo: "🌿 Herbolario", contenido: "<p>Contenido sobre hierbas...</p>" },
       bosque: { titulo: "🌲 El Bosque", contenido: "<p>Contenido sobre permacultura...</p>" },
@@ -162,7 +207,7 @@
       
       const modalBody = document.getElementById('modal-body');
       
-      // Si salimos de la sección música, guardamos el elemento audio en la "bóveda" oculta para que siga sonando
+      // Guardar reproductor en bóveda si cambiamos de sección
       if (modalAudio && modalAudio.parentNode === modalBody) {
         document.getElementById('audio-vault').appendChild(modalAudio);
       }
@@ -179,8 +224,12 @@
           modalAudio.style.width = '100%';
           
           modalAudio.onplay = () => {
-            userPlayedModalAudio = true;
             if (bgAudio) bgAudio.pause();
+          };
+          modalAudio.onpause = () => {
+            if (!isMutedByUser && bgAudio && document.getElementById('modal').classList.contains('active')) {
+              bgAudio.play().catch(() => {});
+            }
           };
         }
         
@@ -195,18 +244,26 @@
     function cerrarModal() {
       const modalBody = document.getElementById('modal-body');
       
-      // Guardar el reproductor en segundo plano al cerrar
+      // Guardar el reproductor en la bóveda al cerrar el modal
       if (modalAudio && modalAudio.parentNode === modalBody) {
         document.getElementById('audio-vault').appendChild(modalAudio);
       }
 
       document.getElementById('modal').classList.remove('active');
       
-      if (!userPlayedModalAudio && bgAudio) {
+      // Reanudar la música ambiental únicamente si el reproductor del modal NO está reproduciéndose y el usuario no silenció el audio
+      const isModalAudioPlaying = modalAudio && !modalAudio.paused;
+      if (!isModalAudioPlaying && !isMutedByUser && bgAudio) {
         bgAudio.play().catch(() => {});
       }
     }
 
+    // Cierre de modal con la tecla Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') cerrarModal();
+    });
+
+    // Iniciar audio en el primer clic global
     window.addEventListener('load', () => {
       document.addEventListener('click', initAudio, { once: true });
     });
