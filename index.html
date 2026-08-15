@@ -89,6 +89,9 @@
 </head>
 <body>
 
+  <!-- Contenedor invisible oculto donde vive el audio activado por el usuario -->
+  <div id="audio-vault" style="display:none;"></div>
+
   <main class="house-container">
     <div class="fireplace-wrapper">
       <div class="fireplace-glow"></div>
@@ -113,8 +116,8 @@
   <script>
     const musicUrl = "./public/Musica/Morning%20in%20the%20Glen%20(Remix).mp3"; 
     let bgAudio = null;
-    let modalAudio = null; // Instancia global para que la música del modal persista
-    let userPlayedModalAudio = false; // Flag para rastrear si se presionó Play en el modal
+    let modalAudio = null;
+    let userPlayedModalAudio = false;
 
     function initAudio() {
       if (!bgAudio) {
@@ -122,7 +125,6 @@
         bgAudio.loop = true;
         bgAudio.volume = 0.4;
       }
-      // Solo inicia el audio ambiental si no se ha iniciado la música del modal
       if (!userPlayedModalAudio) {
         bgAudio.play().catch(e => console.log("Esperando interacción", e));
       }
@@ -159,12 +161,17 @@
       if (!secciones[clave]) return;
       
       const modalBody = document.getElementById('modal-body');
+      
+      // Si salimos de la sección música, guardamos el elemento audio en la "bóveda" oculta para que siga sonando
+      if (modalAudio && modalAudio.parentNode === modalBody) {
+        document.getElementById('audio-vault').appendChild(modalAudio);
+      }
+
       document.getElementById('modal-title').innerHTML = secciones[clave].titulo;
       
       if (secciones[clave].esReproductor) {
         modalBody.innerHTML = ''; 
         
-        // Creamos o reutilizamos la misma instancia del reproductor HTML
         if (!modalAudio) {
           modalAudio = document.createElement('audio');
           modalAudio.src = musicUrl;
@@ -173,7 +180,7 @@
           
           modalAudio.onplay = () => {
             userPlayedModalAudio = true;
-            if (bgAudio) bgAudio.pause(); // Pausa permanente de la ambiental
+            if (bgAudio) bgAudio.pause();
           };
         }
         
@@ -186,9 +193,15 @@
     }
 
     function cerrarModal() {
+      const modalBody = document.getElementById('modal-body');
+      
+      // Guardar el reproductor en segundo plano al cerrar
+      if (modalAudio && modalAudio.parentNode === modalBody) {
+        document.getElementById('audio-vault').appendChild(modalAudio);
+      }
+
       document.getElementById('modal').classList.remove('active');
       
-      // Si el usuario NUNCA activó el reproductor del modal, se reanuda la música ambiental
       if (!userPlayedModalAudio && bgAudio) {
         bgAudio.play().catch(() => {});
       }
