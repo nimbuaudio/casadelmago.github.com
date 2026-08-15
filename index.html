@@ -113,6 +113,8 @@
   <script>
     const musicUrl = "./public/Musica/Morning%20in%20the%20Glen%20(Remix).mp3"; 
     let bgAudio = null;
+    let modalAudio = null; // Instancia global para que la música del modal persista
+    let userPlayedModalAudio = false; // Flag para rastrear si se presionó Play en el modal
 
     function initAudio() {
       if (!bgAudio) {
@@ -120,13 +122,15 @@
         bgAudio.loop = true;
         bgAudio.volume = 0.4;
       }
-      bgAudio.play().catch(() => console.log("Esperando interacción"));
+      // Solo inicia el audio ambiental si no se ha iniciado la música del modal
+      if (!userPlayedModalAudio) {
+        bgAudio.play().catch(e => console.log("Esperando interacción", e));
+      }
     }
 
     const localBaseUrl = "./public/Imagenes/Animacion-chimenea/"; 
     const maxPossibleFrames = 12; 
     const loadedImages = [];
-
     for (let i = 1; i <= maxPossibleFrames; i++) {
       const img = new Image();
       img.src = `${localBaseUrl}chimenea${i}.png`;
@@ -135,7 +139,6 @@
 
     let currentFrameIndex = 0;
     const fireplaceElement = document.getElementById('fireplace-img');
-
     setInterval(() => {
       const activeFrames = loadedImages.filter(Boolean);
       if (activeFrames.length > 0) {
@@ -148,35 +151,45 @@
       herbolario: { titulo: "🌿 Herbolario", contenido: "<p>Contenido sobre hierbas...</p>" },
       bosque: { titulo: "🌲 El Bosque", contenido: "<p>Contenido sobre permacultura...</p>" },
       fuego: { titulo: "🔥 Fuego", contenido: "<p>El calor del hogar.</p>" },
-      /* Se agrega id="modal-player" y evento onplay para detener la música ambiental únicamente al pulsar Play */
-      musica: { titulo: "🎶 Música", contenido: "<audio id='modal-player' controls loop src='"+musicUrl+"' style='width:100%' onplay='pausarFondo()'></audio>" },
+      musica: { titulo: "🎶 Música", esReproductor: true },
       conocimiento: { titulo: "📜 Conocimiento", contenido: "<p>Tarot y Tao.</p>" }
     };
 
-    function pausarFondo() {
-      if (bgAudio) {
-        bgAudio.pause();
-      }
-    }
-
     function abrirSeccion(clave) {
       if (!secciones[clave]) return;
+      
+      const modalBody = document.getElementById('modal-body');
       document.getElementById('modal-title').innerHTML = secciones[clave].titulo;
-      document.getElementById('modal-body').innerHTML = secciones[clave].contenido;
+      
+      if (secciones[clave].esReproductor) {
+        modalBody.innerHTML = ''; 
+        
+        // Creamos o reutilizamos la misma instancia del reproductor HTML
+        if (!modalAudio) {
+          modalAudio = document.createElement('audio');
+          modalAudio.src = musicUrl;
+          modalAudio.controls = true;
+          modalAudio.style.width = '100%';
+          
+          modalAudio.onplay = () => {
+            userPlayedModalAudio = true;
+            if (bgAudio) bgAudio.pause(); // Pausa permanente de la ambiental
+          };
+        }
+        
+        modalBody.appendChild(modalAudio);
+      } else {
+        modalBody.innerHTML = secciones[clave].contenido;
+      }
+      
       document.getElementById('modal').classList.add('active');
     }
 
     function cerrarModal() {
-      // Si el reproductor manual del modal está activo, lo pausamos al cerrar
-      const player = document.getElementById('modal-player');
-      if (player) {
-        player.pause();
-      }
-      
       document.getElementById('modal').classList.remove('active');
       
-      // Reanudamos la música ambiental
-      if (bgAudio) {
+      // Si el usuario NUNCA activó el reproductor del modal, se reanuda la música ambiental
+      if (!userPlayedModalAudio && bgAudio) {
         bgAudio.play().catch(() => {});
       }
     }
