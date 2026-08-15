@@ -155,7 +155,7 @@
     function abrirSeccion(clave) {
       if (!secciones[clave]) return;
 
-      // Pausar audio de fondo si se abre la sección de música
+      // SOLO si la clave es 'musica', pausamos el fondo
       if (clave === 'musica' && bgAudio) {
         bgAudio.pause();
       }
@@ -167,6 +167,11 @@
 
     function cerrarModal() {
       document.getElementById('modal').classList.remove('active');
+      
+      // Al cerrar, volvemos a poner la música de fondo automáticamente
+      if (bgAudio) {
+        bgAudio.play().catch(() => {});
+      }
     }
 
     window.addEventListener('load', () => {
