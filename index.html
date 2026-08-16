@@ -67,7 +67,6 @@
       100% { opacity: 1.0; transform: translateX(-50%) scale(1.10); }
     }
 
-    /* Botón flotante para silenciar/activar música ambiental */
     .audio-control-btn {
       position: absolute; top: 15px; right: 15px; z-index: 30;
       background: rgba(35, 26, 46, 0.85); border: 2px solid var(--accent-gold);
@@ -100,15 +99,59 @@
       cursor: pointer; width: 100%; transition: background 0.2s ease;
     }
     .close-btn:hover { background: var(--accent-gold-hover); }
+
+    /* Estilos del reproductor místico */
+    .pixel-player {
+      background: #15101d;
+      border: 2px solid var(--accent-gold);
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .player-track-info {
+      font-size: 0.85rem;
+      color: var(--accent-gold-hover);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .player-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .player-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--accent-gold);
+      color: var(--accent-gold);
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: background 0.2s ease;
+    }
+    .player-btn:hover {
+      background: var(--accent-gold);
+      color: var(--bg-dark);
+    }
+    .player-slider {
+      flex-grow: 1;
+      accent-color: var(--accent-gold);
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Contenedor invisible oculto donde vive el audio activado por el usuario -->
   <div id="audio-vault" style="display:none;"></div>
 
   <main class="house-container">
-    <!-- Botón de Control de Audio Ambiental -->
     <button id="toggle-audio-btn" class="audio-control-btn" onclick="toggleAudio()" aria-label="Activar o desactivar música de fondo" title="Música ambiental">
       🔊
     </button>
@@ -118,7 +161,6 @@
       <img id="fireplace-img" src="./public/Imagenes/Animacion-chimenea/chimenea1.png" alt="Chimenea" class="fireplace-img">
     </div>
 
-    <!-- Puntos interactivos con atributos de accesibilidad -->
     <button id="spot-herbolario" class="hotspot" onclick="abrirSeccion('herbolario')" aria-label="Abrir Herbolario"></button>
     <button id="spot-bosque" class="hotspot" onclick="abrirSeccion('bosque')" aria-label="Ir al Bosque"></button>
     <button id="spot-fuego" class="hotspot" onclick="abrirSeccion('fuego')" aria-label="Ver el Fuego"></button>
@@ -140,7 +182,6 @@
     let modalAudio = null;
     let isMutedByUser = false;
 
-    // Inicialización e interacciones de audio
     function initAudio() {
       if (!bgAudio) {
         bgAudio = new Audio(musicUrl);
@@ -173,16 +214,26 @@
       }
     }
 
-    // Preloader optimizado para la animación de la chimenea
+    // Preloader corregido manteniendo el orden estricto de las imágenes
     const localBaseUrl = "./public/Imagenes/Animacion-chimenea/"; 
     const maxPossibleFrames = 12; 
     const validFrames = [];
 
-    for (let i = 1; i <= maxPossibleFrames; i++) {
-      const img = new Image();
-      img.src = `${localBaseUrl}chimenea${i}.png`;
-      img.onload = () => { validFrames.push(img.src); };
-    }
+    const loadPromises = Array.from({ length: maxPossibleFrames }, (_, index) => {
+      const frameNum = index + 1;
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.src = `${localBaseUrl}chimenea${frameNum}.png`;
+        img.onload = () => resolve(img.src);
+        img.onerror = () => resolve(null);
+      });
+    });
+
+    Promise.all(loadPromises).then(results => {
+      results.forEach(src => {
+        if (src) validFrames.push(src);
+      });
+    });
 
     let currentFrameIndex = 0;
     const fireplaceElement = document.getElementById('fireplace-img');
@@ -193,7 +244,6 @@
       }
     }, 120);
 
-    // Contenido de secciones
     const secciones = {
       herbolario: { titulo: "🌿 Herbolario", contenido: "<p>Contenido sobre hierbas...</p>" },
       bosque: { titulo: "🌲 El Bosque", contenido: "<p>Contenido sobre permacultura...</p>" },
@@ -202,12 +252,64 @@
       conocimiento: { titulo: "📜 Conocimiento", contenido: "<p>Tarot y Tao.</p>" }
     };
 
+    function crearReproductor() {
+      const container = document.createElement('div');
+      container.className = 'pixel-player';
+
+      const trackInfo = document.createElement('div');
+      trackInfo.className = 'player-track-info';
+      trackInfo.textContent = '🎵 Morning in the Glen (Remix)';
+
+      const controls = document.createElement('div');
+      controls.className = 'player-controls';
+
+      const playBtn = document.createElement('button');
+      playBtn.className = 'player-btn';
+      playBtn.textContent = '► Play';
+
+      const volumeSlider = document.createElement('input');
+      volumeSlider.type = 'range';
+      volumeSlider.min = '0';
+      volumeSlider.max = '1';
+      volumeSlider.step = '0.05';
+      volumeSlider.value = '0.7';
+      volumeSlider.className = 'player-slider';
+
+      modalAudio = new Audio(musicUrl);
+      modalAudio.volume = 0.7;
+
+      playBtn.onclick = () => {
+        if (modalAudio.paused) {
+          if (bgAudio) bgAudio.pause();
+          modalAudio.play();
+          playBtn.textContent = '❚❚ Pause';
+        } else {
+          modalAudio.pause();
+          playBtn.textContent = '► Play';
+        }
+      };
+
+      volumeSlider.oninput = (e) => {
+        modalAudio.volume = e.target.value;
+      };
+
+      modalAudio.onended = () => {
+        playBtn.textContent = '► Play';
+      };
+
+      controls.appendChild(playBtn);
+      controls.appendChild(volumeSlider);
+      container.appendChild(trackInfo);
+      container.appendChild(controls);
+
+      return container;
+    }
+
     function abrirSeccion(clave) {
       if (!secciones[clave]) return;
       
       const modalBody = document.getElementById('modal-body');
       
-      // Guardar reproductor en bóveda si cambiamos de sección
       if (modalAudio && modalAudio.parentNode === modalBody) {
         document.getElementById('audio-vault').appendChild(modalAudio);
       }
@@ -218,22 +320,12 @@
         modalBody.innerHTML = ''; 
         
         if (!modalAudio) {
-          modalAudio = document.createElement('audio');
-          modalAudio.src = musicUrl;
-          modalAudio.controls = true;
-          modalAudio.style.width = '100%';
-          
-          modalAudio.onplay = () => {
-            if (bgAudio) bgAudio.pause();
-          };
-          modalAudio.onpause = () => {
-            if (!isMutedByUser && bgAudio && document.getElementById('modal').classList.contains('active')) {
-              bgAudio.play().catch(() => {});
-            }
-          };
+          const playerUi = crearReproductor();
+          modalBody.appendChild(playerUi);
+        } else {
+          const playerUi = document.querySelector('.pixel-player');
+          modalBody.appendChild(playerUi);
         }
-        
-        modalBody.appendChild(modalAudio);
       } else {
         modalBody.innerHTML = secciones[clave].contenido;
       }
@@ -244,26 +336,22 @@
     function cerrarModal() {
       const modalBody = document.getElementById('modal-body');
       
-      // Guardar el reproductor en la bóveda al cerrar el modal
       if (modalAudio && modalAudio.parentNode === modalBody) {
         document.getElementById('audio-vault').appendChild(modalAudio);
       }
 
       document.getElementById('modal').classList.remove('active');
       
-      // Reanudar la música ambiental únicamente si el reproductor del modal NO está reproduciéndose y el usuario no silenció el audio
       const isModalAudioPlaying = modalAudio && !modalAudio.paused;
       if (!isModalAudioPlaying && !isMutedByUser && bgAudio) {
         bgAudio.play().catch(() => {});
       }
     }
 
-    // Cierre de modal con la tecla Escape
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') cerrarModal();
     });
 
-    // Iniciar audio en el primer clic global
     window.addEventListener('load', () => {
       document.addEventListener('click', initAudio, { once: true });
     });
