@@ -149,8 +149,6 @@
 </head>
 <body>
 
-  <div id="audio-vault" style="display:none;"></div>
-
   <main class="house-container">
     <button id="toggle-audio-btn" class="audio-control-btn" onclick="toggleAudio()" aria-label="Activar o desactivar música de fondo" title="Música ambiental">
       🔊
@@ -182,6 +180,7 @@
     let modalAudio = null;
     let isMutedByUser = false;
 
+    // Inicializador global de Audio
     function initAudio() {
       if (!bgAudio) {
         bgAudio = new Audio(musicUrl);
@@ -214,7 +213,7 @@
       }
     }
 
-    // Preloader corregido manteniendo el orden estricto de las imágenes
+    // Preloader de animación chimenea
     const localBaseUrl = "./public/Imagenes/Animacion-chimenea/"; 
     const maxPossibleFrames = 12; 
     const validFrames = [];
@@ -252,7 +251,13 @@
       conocimiento: { titulo: "📜 Conocimiento", contenido: "<p>Tarot y Tao.</p>" }
     };
 
-    function crearReproductor() {
+    // Constructor de la interfaz del reproductor (Siempre sincronizado)
+    function renderPlayerUI() {
+      if (!modalAudio) {
+        modalAudio = new Audio(musicUrl);
+        modalAudio.volume = 0.7;
+      }
+
       const container = document.createElement('div');
       container.className = 'pixel-player';
 
@@ -265,18 +270,15 @@
 
       const playBtn = document.createElement('button');
       playBtn.className = 'player-btn';
-      playBtn.textContent = '► Play';
+      playBtn.textContent = modalAudio.paused ? '► Play' : '❚❚ Pause';
 
       const volumeSlider = document.createElement('input');
       volumeSlider.type = 'range';
       volumeSlider.min = '0';
       volumeSlider.max = '1';
       volumeSlider.step = '0.05';
-      volumeSlider.value = '0.7';
+      volumeSlider.value = modalAudio.volume;
       volumeSlider.className = 'player-slider';
-
-      modalAudio = new Audio(musicUrl);
-      modalAudio.volume = 0.7;
 
       playBtn.onclick = () => {
         if (modalAudio.paused) {
@@ -309,23 +311,11 @@
       if (!secciones[clave]) return;
       
       const modalBody = document.getElementById('modal-body');
-      
-      if (modalAudio && modalAudio.parentNode === modalBody) {
-        document.getElementById('audio-vault').appendChild(modalAudio);
-      }
-
       document.getElementById('modal-title').innerHTML = secciones[clave].titulo;
+      modalBody.innerHTML = ''; 
       
       if (secciones[clave].esReproductor) {
-        modalBody.innerHTML = ''; 
-        
-        if (!modalAudio) {
-          const playerUi = crearReproductor();
-          modalBody.appendChild(playerUi);
-        } else {
-          const playerUi = document.querySelector('.pixel-player');
-          modalBody.appendChild(playerUi);
-        }
+        modalBody.appendChild(renderPlayerUI());
       } else {
         modalBody.innerHTML = secciones[clave].contenido;
       }
@@ -334,14 +324,9 @@
     }
 
     function cerrarModal() {
-      const modalBody = document.getElementById('modal-body');
-      
-      if (modalAudio && modalAudio.parentNode === modalBody) {
-        document.getElementById('audio-vault').appendChild(modalAudio);
-      }
-
       document.getElementById('modal').classList.remove('active');
       
+      // Reanudar música ambiental solo si la música del modal no está sonando y el usuario no silenció el fondo
       const isModalAudioPlaying = modalAudio && !modalAudio.paused;
       if (!isModalAudioPlaying && !isMutedByUser && bgAudio) {
         bgAudio.play().catch(() => {});
