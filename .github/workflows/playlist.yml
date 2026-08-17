@@ -1,1 +1,47 @@
+name: Generar Playlist Automática
+
+on:
+  push:
+    paths:
+      - 'public/Musica/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generar JSON de canciones
+        run: |
+          node -e '
+          const fs = require("fs");
+          const path = require("path");
+          const dir = "./public/Musica";
+          
+          if (!fs.existsSync(dir)) process.exit(0);
+          
+          const files = fs.readdirSync(dir);
+          const songs = files
+            .filter(f => f.toLowerCase().endsWith(".mp3"))
+            .map(f => ({
+              titulo: decodeURIComponent(f.replace(/\.mp3$/i, "")),
+              url: `./public/Musica/${encodeURIComponent(f)}`
+            }));
+            
+          fs.writeFileSync(path.join(dir, "playlist.json"), JSON.stringify(songs, null, 2));
+          '
+
+      - name: Guardar cambios en el repositorio
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/Musica/playlist.json
+          git diff --staged --quiet || (git commit -m "auto: actualizar playlist.json" && git push)
 
