@@ -133,7 +133,7 @@
 <body>
 
   <main class="house-container" id="main-view">
-    <!-- Botón de Audio global (siempre visible) -->
+    <!-- Botón de Audio global -->
     <button id="toggle-audio-btn" class="audio-control-btn" onclick="toggleAudio()" aria-label="Activar o desactivar música" title="Música ambiental">🔊</button>
 
     <!-- ESCENA PRINCIPAL -->
@@ -152,7 +152,7 @@
 
     <!-- ESCENA HERBOLARIO (CLOSE-UP) -->
     <div id="escena-herbolario" class="escena">
-      <!-- Aquí puedes agregar nuevos 'hotspots' para interactuar con los frascos o el libro en el futuro -->
+      <!-- Aquí puedes agregar nuevos hotspots en el futuro -->
     </div>
 
     <!-- Botón para regresar a la escena principal -->
@@ -172,7 +172,7 @@
   <script>
     // --- CONTROL DE ESCENAS ---
     const bgPrincipal = "./public/Imagenes/1786676817289.png";
-    const bgHerbolario = "./public/Imagenes/1000009058.png"; // Asegúrate de colocar la imagen en esta ruta
+    const bgHerbolario = "./public/Imagenes/herbolario.png"; // Nombre actualizado
 
     function acercarHerbolario() {
       cerrarModal();
