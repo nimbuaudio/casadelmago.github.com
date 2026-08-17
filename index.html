@@ -123,17 +123,17 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
     }
     .player-btn {
       background: var(--card-bg);
       border: 1px solid var(--accent-gold);
       color: var(--accent-gold);
-      padding: 8px 16px;
+      padding: 8px 12px;
       border-radius: 4px;
       cursor: pointer;
       font-family: inherit;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       transition: background 0.2s ease;
     }
     .player-btn:hover {
@@ -175,21 +175,41 @@
   </div>
 
   <script>
-    const musicUrl = "./public/Musica/Morning%20in%20the%20Glen%20(Remix).mp3"; 
+    let playlist = [];
+    let currentTrackIndex = 0;
     let bgAudio = null;
     let modalAudio = null;
     let isMutedByUser = false;
 
+    // Cargar playlist desde el JSON generado automáticamente
+    async function cargarPlaylist() {
+      try {
+        const res = await fetch('./public/Musica/playlist.json');
+        if (res.ok) {
+          playlist = await res.json();
+        }
+      } catch (e) {
+        console.log("No se pudo cargar playlist.json:", e);
+      }
+      
+      // Fallback si no hay canciones o no se encuentra el JSON
+      if (!playlist || playlist.length === 0) {
+        playlist = [
+          { titulo: "Morning in the Glen (Remix)", url: "./public/Musica/Morning%20in%20the%20Glen%20(Remix).mp3" }
+        ];
+      }
+    }
+
     // Inicializador global de Audio
     function initAudio() {
-      if (!bgAudio) {
-        bgAudio = new Audio(musicUrl);
+      if (!bgAudio && playlist.length > 0) {
+        bgAudio = new Audio(playlist[0].url);
         bgAudio.loop = true;
         bgAudio.volume = 0.4;
       }
       
       const isModalAudioPlaying = modalAudio && !modalAudio.paused;
-      if (!isModalAudioPlaying && !isMutedByUser && bgAudio.paused) {
+      if (!isModalAudioPlaying && !isMutedByUser && bgAudio && bgAudio.paused) {
         bgAudio.play().catch(e => console.log("Esperando interacción del usuario", e));
       }
     }
@@ -251,11 +271,36 @@
       conocimiento: { titulo: "📜 Conocimiento", contenido: "<p>Tarot y Tao.</p>" }
     };
 
-    // Constructor de la interfaz del reproductor (Siempre sincronizado)
+    // Control dinámico de Pistas
+    function loadTrack(index) {
+      if (!modalAudio) {
+        modalAudio = new Audio();
+        modalAudio.volume = 0.7;
+        
+        modalAudio.onended = () => {
+          changeTrack(1);
+        };
+      }
+      currentTrackIndex = (index + playlist.length) % playlist.length;
+      modalAudio.src = playlist[currentTrackIndex].url;
+    }
+
+    function changeTrack(direction) {
+      const wasPlaying = modalAudio && !modalAudio.paused;
+      loadTrack(currentTrackIndex + direction);
+      
+      const trackInfo = document.querySelector('.player-track-info');
+      if (trackInfo) trackInfo.textContent = `🎵 ${playlist[currentTrackIndex].titulo}`;
+      
+      if (wasPlaying) {
+        if (bgAudio) bgAudio.pause();
+        modalAudio.play();
+      }
+    }
+
     function renderPlayerUI() {
       if (!modalAudio) {
-        modalAudio = new Audio(musicUrl);
-        modalAudio.volume = 0.7;
+        loadTrack(0);
       }
 
       const container = document.createElement('div');
@@ -263,14 +308,30 @@
 
       const trackInfo = document.createElement('div');
       trackInfo.className = 'player-track-info';
-      trackInfo.textContent = '🎵 Morning in the Glen (Remix)';
+      trackInfo.textContent = `🎵 ${playlist[currentTrackIndex].titulo}`;
 
       const controls = document.createElement('div');
       controls.className = 'player-controls';
 
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'player-btn';
+      prevBtn.textContent = '◄◄';
+      prevBtn.onclick = () => {
+        changeTrack(-1);
+        playBtn.textContent = modalAudio.paused ? '► Play' : '❚❚ Pause';
+      };
+
       const playBtn = document.createElement('button');
       playBtn.className = 'player-btn';
       playBtn.textContent = modalAudio.paused ? '► Play' : '❚❚ Pause';
+
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'player-btn';
+      nextBtn.textContent = '►►';
+      nextBtn.onclick = () => {
+        changeTrack(1);
+        playBtn.textContent = modalAudio.paused ? '► Play' : '❚❚ Pause';
+      };
 
       const volumeSlider = document.createElement('input');
       volumeSlider.type = 'range';
@@ -295,11 +356,9 @@
         modalAudio.volume = e.target.value;
       };
 
-      modalAudio.onended = () => {
-        playBtn.textContent = '► Play';
-      };
-
+      controls.appendChild(prevBtn);
       controls.appendChild(playBtn);
+      controls.appendChild(nextBtn);
       controls.appendChild(volumeSlider);
       container.appendChild(trackInfo);
       container.appendChild(controls);
@@ -326,7 +385,6 @@
     function cerrarModal() {
       document.getElementById('modal').classList.remove('active');
       
-      // Reanudar música ambiental solo si la música del modal no está sonando y el usuario no silenció el fondo
       const isModalAudioPlaying = modalAudio && !modalAudio.paused;
       if (!isModalAudioPlaying && !isMutedByUser && bgAudio) {
         bgAudio.play().catch(() => {});
@@ -337,7 +395,8 @@
       if (e.key === 'Escape') cerrarModal();
     });
 
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
+      await cargarPlaylist();
       document.addEventListener('click', initAudio, { once: true });
     });
   </script>
