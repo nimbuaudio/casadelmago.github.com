@@ -2,5 +2,13 @@
   {
     "titulo": "Morning in the Glen (Remix)",
     "url": "./public/Musica/Morning%20in%20the%20Glen%20(Remix).mp3"
+  },
+  {
+    "titulo": "Nada En Vano 2_mixed.mp3 (Remix) (3)",
+    "url": "./public/Musica/Nada%20En%20Vano%202_mixed.mp3%20(Remix)%20(3).mp3"
+  },
+  {
+    "titulo": "Un Gran Poder",
+    "url": "./public/Musica/Un%20Gran%20Poder.mp3"
   }
 ]
