@@ -403,6 +403,14 @@
       
       currentTrackIndex = (index + playlist.length) % playlist.length;
       modalAudio.src = playlist[currentTrackIndex].url;
+
+      modalAudio.onerror = () => {
+        console.error("No se pudo cargar el audio:", playlist[currentTrackIndex].url, modalAudio.error);
+        const trackInfo = document.querySelector('.player-track-info');
+        if (trackInfo) {
+          trackInfo.textContent = `⚠️ No se pudo cargar: ${playlist[currentTrackIndex].titulo}`;
+        }
+      };
       
       // Pasar de canción de forma automática al finalizar
       modalAudio.onended = () => {
@@ -421,7 +429,10 @@
       
       if (wasPlaying) {
         if (bgAudio) bgAudio.pause();
-        modalAudio.play().catch(e => console.log("Error al reproducir pista:", e));
+        modalAudio.play().catch(e => {
+          console.error("Error al reproducir pista:", playlist[currentTrackIndex].url, e);
+          if (trackInfo) trackInfo.textContent = `⚠️ No se pudo reproducir: ${playlist[currentTrackIndex].titulo}`;
+        });
         if (playBtn) playBtn.textContent = '❚❚ Pause';
       } else {
         if (playBtn) playBtn.textContent = '► Play';
