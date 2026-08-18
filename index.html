@@ -116,18 +116,62 @@
     /* Pantalla completa de acercamiento (ej. Herbolario) */
     .full-screen-view {
       display: none; position: fixed; inset: 0; z-index: 200;
-      background-size: cover; background-position: center;
-      image-rendering: pixelated; background-color: var(--bg-dark);
-      flex-direction: column; justify-content: flex-end; align-items: center;
-      padding: 30px; opacity: 0; transition: opacity 0.3s ease;
+      background-color: var(--bg-dark);
+      justify-content: center; align-items: center;
+      opacity: 0; transition: opacity 0.3s ease;
     }
     .full-screen-view.active { display: flex; opacity: 1; }
+
+    .full-screen-media {
+      position: relative; overflow: hidden;
+      width: min(100vw, calc(100vh * 16 / 9));
+      height: min(100vh, calc(100vw * 9 / 16));
+      box-sizing: border-box;
+      cursor: grab; touch-action: none; user-select: none;
+    }
+    .full-screen-media.dragging { cursor: grabbing; }
+
+    .panorama-layer {
+      position: absolute; top: 0; left: 0; height: 100%;
+      will-change: transform;
+    }
+    .panorama-img {
+      height: 100%; width: auto; display: block;
+      image-rendering: pixelated; -webkit-user-drag: none;
+      user-select: none; pointer-events: none;
+    }
+
     .volver-btn {
+      position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
       background: var(--accent-gold); color: #120e17; border: none;
       padding: 12px 28px; font-weight: bold; border-radius: 6px; cursor: pointer;
-      font-family: inherit; transition: background 0.2s ease;
+      font-family: inherit; transition: background 0.2s ease; z-index: 210;
     }
     .volver-btn:hover { background: var(--accent-gold-hover); }
+
+    .hotspot-herbolario {
+      position: absolute; cursor: pointer; z-index: 205; border-radius: 10px;
+      border: 2px solid transparent; background-color: rgba(200, 159, 101, 0.12);
+      transition: background-color 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
+      outline: none; padding: 0; display: flex; align-items: flex-end; justify-content: center;
+    }
+    .hotspot-herbolario:hover, .hotspot-herbolario:focus-visible {
+      background-color: rgba(255, 215, 0, 0.18);
+      border: 2px dashed var(--hotspot-hover);
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    }
+    .hotspot-herbolario .hotspot-label {
+      font-size: 0.75rem; color: var(--accent-gold-hover); background: rgba(14, 11, 18, 0.75);
+      padding: 4px 8px; border-radius: 4px; margin-bottom: 6px; text-align: center;
+      opacity: 0; transition: opacity 0.2s ease;
+    }
+    .hotspot-herbolario:hover .hotspot-label, .hotspot-herbolario:focus-visible .hotspot-label {
+      opacity: 1;
+    }
+
+    #spot-plantas-medicinales { top: 2%;  left: 42%; width: 36%; height: 63%; }
+    #spot-pociones-tinturas   { top: 32%; left: 0%;  width: 37%; height: 68%; }
+    #spot-enciclopedia-py     { top: 55%; left: 67%; width: 33%; height: 45%; }
 
     /* Estilos responsivos del reproductor */
     .pixel-player {
@@ -219,8 +263,22 @@
     </div>
   </div>
 
-  <div id="herbolario-screen" class="full-screen-view" style="background-image: url('./public/Imagenes/herbolario.png');" role="dialog" aria-modal="true" aria-label="Herbolario, vista de acercamiento">
-    <button class="volver-btn" onclick="cerrarHerbolarioScreen()">Volver a la Casa</button>
+  <div id="herbolario-screen" class="full-screen-view" role="dialog" aria-modal="true" aria-label="Herbolario, vista de acercamiento">
+    <div class="full-screen-media" id="herbolario-viewport">
+      <div class="panorama-layer" id="herbolario-panorama-layer">
+        <img id="herbolario-panorama-img" class="panorama-img" src="./public/Imagenes/herbolario-panoramica.png" alt="Herbolario" draggable="false">
+        <button id="spot-plantas-medicinales" class="hotspot-herbolario" onclick="abrirSeccion('plantas-medicinales')" aria-label="Plantas Medicinales">
+          <span class="hotspot-label">Plantas Medicinales</span>
+        </button>
+        <button id="spot-pociones-tinturas" class="hotspot-herbolario" onclick="abrirSeccion('pociones-tinturas')" aria-label="Pociones y Tinturas">
+          <span class="hotspot-label">Pociones y Tinturas</span>
+        </button>
+        <button id="spot-enciclopedia-py" class="hotspot-herbolario" onclick="abrirSeccion('enciclopedia-py')" aria-label="Enciclopedia de Plantas Silvestres de Paraguay">
+          <span class="hotspot-label">Enciclopedia de Plantas Silvestres de Paraguay</span>
+        </button>
+      </div>
+      <button class="volver-btn" onclick="cerrarHerbolarioScreen()">Volver a la Casa</button>
+    </div>
   </div>
 
   <script>
@@ -316,6 +374,18 @@
           <p>Bienvenido al herbolario. Aquí encontrarás pócimas, hierbas curativas y remedios mágicos.</p>
           <button class="acercarse-btn" onclick="abrirHerbolarioScreen()">Acercarse</button>
         `
+      },
+      'plantas-medicinales': {
+        titulo: "🌿 Plantas Medicinales",
+        contenido: `<p>Un catálogo de las plantas de uso medicinal del herbolario: propiedades, preparación y usos tradicionales.</p>`
+      },
+      'pociones-tinturas': {
+        titulo: "🧪 Pociones y Tinturas",
+        contenido: `<p>Recetas y procesos para elaborar pociones, tinturas y elixires a partir de las hierbas recolectadas.</p>`
+      },
+      'enciclopedia-py': {
+        titulo: "📖 Enciclopedia de Plantas Silvestres de Paraguay",
+        contenido: `<p>Un compendio de plantas silvestres nativas de Paraguay, con sus nombres, hábitats y usos.</p>`
       },
       bosque: { titulo: "🌲 El Bosque", contenido: "<p>Contenido sobre permacultura...</p>" },
       fuego: { titulo: "🔥 Fuego", contenido: "<p>El calor del hogar.</p>" },
@@ -461,6 +531,7 @@
     function abrirHerbolarioScreen() {
       cerrarModal();
       document.getElementById('herbolario-screen').classList.add('active');
+      requestAnimationFrame(recalcPanoramaBounds);
     }
 
     function cerrarHerbolarioScreen() {
@@ -479,9 +550,75 @@
       }
     });
 
+    // --- Exploración en primera persona (drag-to-pan sobre imagen panorámica) ---
+    let panoramaOffsetX = 0;
+    let panoramaMinOffset = 0;
+    let panoramaIsDragging = false;
+    let panoramaDragMoved = false;
+    let panoramaDragStartX = 0;
+    let panoramaStartOffsetX = 0;
+
+    function recalcPanoramaBounds() {
+      const viewport = document.getElementById('herbolario-viewport');
+      const layer = document.getElementById('herbolario-panorama-layer');
+      if (!viewport || !layer) return;
+      const viewportWidth = viewport.clientWidth;
+      const layerWidth = layer.offsetWidth;
+      panoramaMinOffset = Math.min(0, viewportWidth - layerWidth);
+      panoramaOffsetX = Math.min(0, Math.max(panoramaMinOffset, panoramaOffsetX));
+      layer.style.transform = `translateX(${panoramaOffsetX}px)`;
+    }
+
+    function iniciarPanoramaDrag(e) {
+      const viewport = document.getElementById('herbolario-viewport');
+      panoramaIsDragging = true;
+      panoramaDragMoved = false;
+      panoramaDragStartX = e.clientX;
+      panoramaStartOffsetX = panoramaOffsetX;
+      viewport.classList.add('dragging');
+      try { viewport.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+
+    function moverPanoramaDrag(e) {
+      if (!panoramaIsDragging) return;
+      const layer = document.getElementById('herbolario-panorama-layer');
+      const delta = e.clientX - panoramaDragStartX;
+      if (Math.abs(delta) > 6) panoramaDragMoved = true;
+      panoramaOffsetX = Math.min(0, Math.max(panoramaMinOffset, panoramaStartOffsetX + delta));
+      layer.style.transform = `translateX(${panoramaOffsetX}px)`;
+    }
+
+    function terminarPanoramaDrag() {
+      panoramaIsDragging = false;
+      document.getElementById('herbolario-viewport').classList.remove('dragging');
+    }
+
+    function bloquearClickSiHuboDrag(e) {
+      if (panoramaDragMoved) {
+        e.stopPropagation();
+        e.preventDefault();
+        panoramaDragMoved = false;
+      }
+    }
+
     window.addEventListener('load', async () => {
       await cargarPlaylist();
       document.addEventListener('click', initAudio, { once: true });
+
+      const viewport = document.getElementById('herbolario-viewport');
+      const img = document.getElementById('herbolario-panorama-img');
+      if (viewport) {
+        viewport.addEventListener('pointerdown', iniciarPanoramaDrag);
+        viewport.addEventListener('pointermove', moverPanoramaDrag);
+        viewport.addEventListener('pointerup', terminarPanoramaDrag);
+        viewport.addEventListener('pointercancel', terminarPanoramaDrag);
+        viewport.addEventListener('click', bloquearClickSiHuboDrag, true);
+      }
+      if (img) {
+        img.addEventListener('load', recalcPanoramaBounds);
+        if (img.complete && img.naturalWidth > 0) recalcPanoramaBounds();
+      }
+      window.addEventListener('resize', recalcPanoramaBounds);
     });
   </script>
 </body>
