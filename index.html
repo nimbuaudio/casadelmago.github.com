@@ -133,10 +133,11 @@
 
     .panorama-layer {
       position: absolute; top: 0; left: 0; height: 100%;
+      display: flex; align-items: stretch;
       will-change: transform;
     }
     .panorama-img {
-      height: 100%; width: auto; display: block;
+      height: 100%; width: auto; display: block; flex-shrink: 0;
       image-rendering: pixelated; -webkit-user-drag: none;
       user-select: none; pointer-events: none;
     }
@@ -266,7 +267,9 @@
   <div id="herbolario-screen" class="full-screen-view" role="dialog" aria-modal="true" aria-label="Herbolario, vista de acercamiento">
     <div class="full-screen-media" id="herbolario-viewport">
       <div class="panorama-layer" id="herbolario-panorama-layer">
-        <img id="herbolario-panorama-img" class="panorama-img" src="./public/Imagenes/herbolario-panoramica.png" alt="Herbolario" draggable="false">
+        <img class="panorama-img herbolario-panel" src="./public/Imagenes/herbolario-izquierda.png" alt="Herbolario, panel izquierdo" draggable="false">
+        <img class="panorama-img herbolario-panel" src="./public/Imagenes/herbolario-centro.png" alt="Herbolario, panel central" draggable="false">
+        <img class="panorama-img herbolario-panel" src="./public/Imagenes/herbolario-derecha.png" alt="Herbolario, panel derecho" draggable="false">
         <button id="spot-plantas-medicinales" class="hotspot-herbolario" onclick="abrirSeccion('plantas-medicinales')" aria-label="Plantas Medicinales">
           <span class="hotspot-label">Plantas Medicinales</span>
         </button>
@@ -606,7 +609,7 @@
       document.addEventListener('click', initAudio, { once: true });
 
       const viewport = document.getElementById('herbolario-viewport');
-      const img = document.getElementById('herbolario-panorama-img');
+      const paneles = document.querySelectorAll('.herbolario-panel');
       if (viewport) {
         viewport.addEventListener('pointerdown', iniciarPanoramaDrag);
         viewport.addEventListener('pointermove', moverPanoramaDrag);
@@ -614,10 +617,10 @@
         viewport.addEventListener('pointercancel', terminarPanoramaDrag);
         viewport.addEventListener('click', bloquearClickSiHuboDrag, true);
       }
-      if (img) {
-        img.addEventListener('load', recalcPanoramaBounds);
-        if (img.complete && img.naturalWidth > 0) recalcPanoramaBounds();
-      }
+      paneles.forEach((panel) => {
+        panel.addEventListener('load', recalcPanoramaBounds);
+        if (panel.complete && panel.naturalWidth > 0) recalcPanoramaBounds();
+      });
       window.addEventListener('resize', recalcPanoramaBounds);
     });
   </script>
