@@ -105,6 +105,30 @@
     }
     .close-btn:hover { background: var(--accent-gold-hover); }
 
+    .acercarse-btn {
+      margin-top: 10px; background: transparent; color: var(--accent-gold);
+      border: 2px solid var(--accent-gold); padding: 12px 20px; font-weight: bold;
+      border-radius: 6px; cursor: pointer; width: 100%; font-family: inherit;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .acercarse-btn:hover { background: var(--accent-gold); color: var(--bg-dark); }
+
+    /* Pantalla completa de acercamiento (ej. Herbolario) */
+    .full-screen-view {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background-size: cover; background-position: center;
+      image-rendering: pixelated; background-color: var(--bg-dark);
+      flex-direction: column; justify-content: flex-end; align-items: center;
+      padding: 30px; opacity: 0; transition: opacity 0.3s ease;
+    }
+    .full-screen-view.active { display: flex; opacity: 1; }
+    .volver-btn {
+      background: var(--accent-gold); color: #120e17; border: none;
+      padding: 12px 28px; font-weight: bold; border-radius: 6px; cursor: pointer;
+      font-family: inherit; transition: background 0.2s ease;
+    }
+    .volver-btn:hover { background: var(--accent-gold-hover); }
+
     /* Estilos responsivos del reproductor */
     .pixel-player {
       background: #15101d;
@@ -193,6 +217,10 @@
       <div id="modal-body">Cargando...</div>
       <button class="close-btn" onclick="cerrarModal()">Regresar a la Casa</button>
     </div>
+  </div>
+
+  <div id="herbolario-screen" class="full-screen-view" style="background-image: url('./public/Imagenes/herbolario.png');" role="dialog" aria-modal="true" aria-label="Herbolario, vista de acercamiento">
+    <button class="volver-btn" onclick="cerrarHerbolarioScreen()">Volver a la Casa</button>
   </div>
 
   <script>
@@ -286,6 +314,7 @@
         contenido: `
           <img src="./public/Imagenes/herbolario.png" alt="Herbolario" class="modal-img" onerror="console.error('Error al cargar la imagen del herbolario');">
           <p>Bienvenido al herbolario. Aquí encontrarás pócimas, hierbas curativas y remedios mágicos.</p>
+          <button class="acercarse-btn" onclick="abrirHerbolarioScreen()">Acercarse</button>
         `
       },
       bosque: { titulo: "🌲 El Bosque", contenido: "<p>Contenido sobre permacultura...</p>" },
@@ -429,8 +458,25 @@
       }
     }
 
+    function abrirHerbolarioScreen() {
+      cerrarModal();
+      document.getElementById('herbolario-screen').classList.add('active');
+    }
+
+    function cerrarHerbolarioScreen() {
+      document.getElementById('herbolario-screen').classList.remove('active');
+      
+      const isModalAudioPlaying = modalAudio && !modalAudio.paused;
+      if (!isModalAudioPlaying && !isMutedByUser && bgAudio) {
+        bgAudio.play().catch(() => {});
+      }
+    }
+
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') cerrarModal();
+      if (e.key === 'Escape') {
+        cerrarModal();
+        cerrarHerbolarioScreen();
+      }
     });
 
     window.addEventListener('load', async () => {
