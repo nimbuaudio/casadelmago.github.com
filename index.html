@@ -124,8 +124,7 @@
 
     .full-screen-media {
       position: relative; overflow: hidden;
-      width: min(100vw, calc(100vh * 16 / 9));
-      height: min(100vh, calc(100vw * 9 / 16));
+      width: 100vw; height: 100vh;
       box-sizing: border-box;
       cursor: grab; touch-action: none; user-select: none;
     }
@@ -267,9 +266,9 @@
   <div id="herbolario-screen" class="full-screen-view" role="dialog" aria-modal="true" aria-label="Herbolario, vista de acercamiento">
     <div class="full-screen-media" id="herbolario-viewport">
       <div class="panorama-layer" id="herbolario-panorama-layer">
-        <img class="panorama-img herbolario-panel" src="./public/Imagenes/herbolario-izquierda.jpg" alt="Herbolario, panel izquierdo" draggable="false">
-        <img class="panorama-img herbolario-panel" src="./public/Imagenes/herbolario-centro.jpg" alt="Herbolario, panel central" draggable="false">
-        <img class="panorama-img herbolario-panel" src="./public/Imagenes/herbolario-derecha.jpg" alt="Herbolario, panel derecho" draggable="false">
+        <img class="panorama-img herbolario-panel" src="./public/Imagenes/herbolario-izquierda.webp" alt="Herbolario, panel izquierdo" draggable="false">
+        <img class="panorama-img herbolario-panel" src="./public/Imagenes/herbolario-centro.webp" alt="Herbolario, panel central" draggable="false">
+        <img class="panorama-img herbolario-panel" src="./public/Imagenes/herbolario-derecha.webp" alt="Herbolario, panel derecho" draggable="false">
         <button id="spot-plantas-medicinales" class="hotspot-herbolario" onclick="abrirSeccion('plantas-medicinales')" aria-label="Plantas Medicinales">
           <span class="hotspot-label">Plantas Medicinales</span>
         </button>
