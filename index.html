@@ -533,6 +533,7 @@
     function abrirHerbolarioScreen() {
       cerrarModal();
       document.getElementById('herbolario-screen').classList.add('active');
+      panoramaCentrarAlAbrir = true;
       requestAnimationFrame(recalcPanoramaBounds);
     }
 
@@ -559,6 +560,7 @@
     let panoramaDragMoved = false;
     let panoramaDragStartX = 0;
     let panoramaStartOffsetX = 0;
+    let panoramaCentrarAlAbrir = true;
 
     function recalcPanoramaBounds() {
       const viewport = document.getElementById('herbolario-viewport');
@@ -567,6 +569,10 @@
       const viewportWidth = viewport.clientWidth;
       const layerWidth = layer.offsetWidth;
       panoramaMinOffset = Math.min(0, viewportWidth - layerWidth);
+      if (panoramaCentrarAlAbrir && layerWidth > 0) {
+        panoramaOffsetX = (viewportWidth - layerWidth) / 2;
+        panoramaCentrarAlAbrir = false;
+      }
       panoramaOffsetX = Math.min(0, Math.max(panoramaMinOffset, panoramaOffsetX));
       layer.style.transform = `translateX(${panoramaOffsetX}px)`;
     }
