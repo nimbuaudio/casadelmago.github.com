@@ -119,6 +119,7 @@
       background-color: var(--bg-dark);
       justify-content: center; align-items: center;
       opacity: 0; transition: opacity 0.3s ease;
+      overflow: hidden;
     }
     .full-screen-view.active { display: flex; opacity: 1; }
 
@@ -131,12 +132,13 @@
     .full-screen-media.dragging { cursor: grabbing; }
 
     .panorama-layer {
-      position: absolute; top: 0; left: 0; height: 100%;
-      display: flex; align-items: stretch;
+      position: absolute; top: 0; left: 0; height: 100vh;
+      min-width: 100vw; display: flex; align-items: center;
       will-change: transform;
     }
     .panorama-img {
-      height: 100%; width: auto; display: block; flex-shrink: 0;
+      height: 100vh; width: auto; min-width: 33.333vw;
+      object-fit: cover; display: block; flex-shrink: 0;
       image-rendering: pixelated; -webkit-user-drag: none;
       user-select: none; pointer-events: none;
     }
@@ -412,7 +414,6 @@
         }
       };
       
-      // Pasar de canción de forma automática al finalizar
       modalAudio.onended = () => {
         changeTrack(1, true);
       };
@@ -577,9 +578,12 @@
       const viewport = document.getElementById('herbolario-viewport');
       const layer = document.getElementById('herbolario-panorama-layer');
       if (!viewport || !layer) return;
+      
       const viewportWidth = viewport.clientWidth;
       const layerWidth = layer.offsetWidth;
+
       panoramaMinOffset = Math.min(0, viewportWidth - layerWidth);
+
       if (panoramaCentrarAlAbrir && layerWidth > 0) {
         panoramaOffsetX = (viewportWidth - layerWidth) / 2;
         panoramaCentrarAlAbrir = false;
