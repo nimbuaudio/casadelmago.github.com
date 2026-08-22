@@ -184,15 +184,23 @@
     .grimorio-screen.active { display: block; opacity: 1; }
 
     .grimorio-track {
-      display: flex; height: 100%; height: 100dvh;
+      position: relative; height: 100%; height: 100dvh;
       touch-action: pan-y;
+      perspective: 1700px;
     }
-    .grimorio-track.no-transition { transition: none !important; }
-    .grimorio-track.transitioning { transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1); }
 
     .grimorio-card {
-      position: relative; flex: 0 0 100vw; height: 100%; height: 100dvh;
+      position: absolute; inset: 0; height: 100%; height: 100dvh;
       overflow: hidden;
+      backface-visibility: hidden;
+      will-change: transform;
+      box-shadow: -6px 0 24px rgba(0,0,0,0.5);
+    }
+
+    .grimorio-card-fold {
+      position: absolute; inset: 0; z-index: 10; pointer-events: none;
+      opacity: 0;
+      background: linear-gradient(to right, rgba(0,0,0,0.55), rgba(0,0,0,0) 65%);
     }
 
     .grimorio-card-bg {
@@ -784,6 +792,7 @@
         card.innerHTML = `
           <div class="grimorio-card-bg"></div>
           <div class="grimorio-card-overlay"></div>
+          <div class="grimorio-card-fold"></div>
           <div class="grimorio-card-content">
             <div class="grimorio-img-wrap">
               <img src="${p.imagen}" alt="${p.nombre}" loading="lazy">
@@ -808,31 +817,99 @@
         nav.appendChild(dot);
       });
 
+      grimorioCards = Array.from(track.querySelectorAll('.grimorio-card'));
       grimorioConstruido = true;
     }
 
-    function irAPlanta(index, animar) {
-      plantaActualIndex = (index + plantas.length) % plantas.length;
-      const track = document.getElementById('grimorio-track');
-      grimorioViewportWidth = window.innerWidth;
-      track.classList.toggle('transitioning', animar !== false);
-      track.classList.toggle('no-transition', animar === false);
-      track.style.transform = `translateX(${-plantaActualIndex * grimorioViewportWidth}px)`;
+    const GRIMORIO_DURACION = 460; // ms
+    const GRIMORIO_UMBRAL = 0.28; // 28% del ancho de pantalla para confirmar el giro
 
+    let grimorioCards = [];
+    let grimorioIsAnimating = false;
+
+    function actualizarCapasGrimorio() {
+      const n = plantas.length;
+      grimorioCards.forEach((card, i) => {
+        card.style.transition = 'none';
+        card.style.transform = 'rotateY(0deg)';
+        card.style.transformOrigin = 'center center';
+        if (i === plantaActualIndex) {
+          card.style.zIndex = 3;
+        } else if (i === (plantaActualIndex + 1) % n || i === (plantaActualIndex - 1 + n) % n) {
+          card.style.zIndex = 2;
+        } else {
+          card.style.zIndex = 1;
+        }
+        const fold = card.querySelector('.grimorio-card-fold');
+        if (fold) fold.style.opacity = '0';
+      });
+    }
+
+    function actualizarDotsGrimorio() {
       document.querySelectorAll('#grimorio-nav .grimorio-dot').forEach((dot, i) => {
         dot.classList.toggle('active', i === plantaActualIndex);
       });
     }
 
+    // direccion: 1 = pasar a la siguiente (gira desde la derecha, bisagra a la izquierda)
+    //           -1 = volver a la anterior (gira desde la izquierda, bisagra a la derecha)
+    function completarGiroPagina(direccion) {
+      if (plantas.length < 2) return;
+      grimorioIsAnimating = true;
+      const currentCard = grimorioCards[plantaActualIndex];
+      const fold = currentCard.querySelector('.grimorio-card-fold');
+      const targetAngle = direccion > 0 ? -180 : 180;
+
+      currentCard.style.transformOrigin = direccion > 0 ? 'left center' : 'right center';
+      if (fold) {
+        fold.style.background = direccion > 0
+          ? 'linear-gradient(to right, rgba(0,0,0,0.55), rgba(0,0,0,0) 65%)'
+          : 'linear-gradient(to left, rgba(0,0,0,0.55), rgba(0,0,0,0) 65%)';
+      }
+      currentCard.style.transition = `transform ${GRIMORIO_DURACION}ms cubic-bezier(0.45, 0, 0.55, 1)`;
+
+      requestAnimationFrame(() => {
+        currentCard.style.transform = `rotateY(${targetAngle}deg)`;
+        if (fold) { fold.style.transition = `opacity ${GRIMORIO_DURACION}ms ease`; fold.style.opacity = '1'; }
+      });
+
+      const onEnd = () => {
+        currentCard.removeEventListener('transitionend', onEnd);
+        plantaActualIndex = (plantaActualIndex + direccion + plantas.length) % plantas.length;
+        actualizarCapasGrimorio();
+        actualizarDotsGrimorio();
+        grimorioIsAnimating = false;
+      };
+      currentCard.addEventListener('transitionend', onEnd, { once: true });
+    }
+
+    function cancelarGiroPagina() {
+      const currentCard = grimorioCards[plantaActualIndex];
+      const fold = currentCard.querySelector('.grimorio-card-fold');
+      currentCard.style.transition = `transform ${GRIMORIO_DURACION}ms ease`;
+      currentCard.style.transform = 'rotateY(0deg)';
+      if (fold) { fold.style.transition = `opacity ${GRIMORIO_DURACION}ms ease`; fold.style.opacity = '0'; }
+      const onEnd = () => {
+        currentCard.removeEventListener('transitionend', onEnd);
+        grimorioIsAnimating = false;
+      };
+      currentCard.addEventListener('transitionend', onEnd, { once: true });
+    }
+
     function cambiarPlanta(direccion) {
-      irAPlanta(plantaActualIndex + direccion, true);
+      if (grimorioIsAnimating || plantas.length < 2) return;
+      grimorioIsAnimating = true;
+      completarGiroPagina(direccion);
     }
 
     function abrirGrimorio() {
       if (plantas.length === 0) return;
       if (!grimorioConstruido) construirGrimorio();
+      plantaActualIndex = 0;
+      grimorioIsAnimating = false;
+      actualizarCapasGrimorio();
+      actualizarDotsGrimorio();
       document.getElementById('grimorio-screen').classList.add('active');
-      irAPlanta(0, false);
 
       const fondoTest = new Image();
       fondoTest.onload = () => console.log('✅ Fondo del grimorio cargado correctamente');
@@ -844,36 +921,53 @@
       document.getElementById('grimorio-screen').classList.remove('active');
     }
 
-    // --- Deslizamiento (swipe) horizontal entre fichas ---
+    // --- Deslizamiento (swipe) para pasar la página con el dedo ---
     let grimorioDragStartX = 0;
     let grimorioDragStartY = 0;
     let grimorioDragDeltaX = 0;
     let grimorioIsDragging = false;
     let grimorioDragEsHorizontal = null;
+    let grimorioDragDireccion = 0;
 
     function grimorioDragInicio(x, y) {
+      if (grimorioIsAnimating) return;
       grimorioIsDragging = true;
       grimorioDragEsHorizontal = null;
+      grimorioDragDireccion = 0;
       grimorioDragStartX = x;
       grimorioDragStartY = y;
       grimorioDragDeltaX = 0;
-      document.getElementById('grimorio-track').classList.add('no-transition');
-      document.getElementById('grimorio-track').classList.remove('transitioning');
     }
 
     function grimorioDragMovimiento(x, y) {
-      if (!grimorioIsDragging) return null;
+      if (!grimorioIsDragging || grimorioIsAnimating) return null;
       const dx = x - grimorioDragStartX;
       const dy = y - grimorioDragStartY;
 
       if (grimorioDragEsHorizontal === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
         grimorioDragEsHorizontal = Math.abs(dx) > Math.abs(dy);
+        if (grimorioDragEsHorizontal && plantas.length > 1) {
+          grimorioDragDireccion = dx < 0 ? 1 : -1;
+          const currentCard = grimorioCards[plantaActualIndex];
+          currentCard.style.transition = 'none';
+          currentCard.style.transformOrigin = grimorioDragDireccion > 0 ? 'left center' : 'right center';
+          const fold = currentCard.querySelector('.grimorio-card-fold');
+          if (fold) {
+            fold.style.transition = 'none';
+            fold.style.background = grimorioDragDireccion > 0
+              ? 'linear-gradient(to right, rgba(0,0,0,0.55), rgba(0,0,0,0) 65%)'
+              : 'linear-gradient(to left, rgba(0,0,0,0.55), rgba(0,0,0,0) 65%)';
+          }
+        }
       }
-      if (!grimorioDragEsHorizontal) return null;
+      if (!grimorioDragEsHorizontal || plantas.length < 2) return null;
 
       grimorioDragDeltaX = dx;
-      const track = document.getElementById('grimorio-track');
-      track.style.transform = `translateX(${-plantaActualIndex * grimorioViewportWidth + dx}px)`;
+      const t = Math.max(-1, Math.min(1, dx / grimorioViewportWidth));
+      const currentCard = grimorioCards[plantaActualIndex];
+      currentCard.style.transform = `rotateY(${t * 180}deg)`;
+      const fold = currentCard.querySelector('.grimorio-card-fold');
+      if (fold) fold.style.opacity = String(Math.min(1, Math.abs(t) * 1.4));
       return true;
     }
 
@@ -881,17 +975,18 @@
       if (!grimorioIsDragging) return;
       grimorioIsDragging = false;
 
-      if (grimorioDragEsHorizontal) {
-        const umbral = grimorioViewportWidth * 0.18;
-        if (grimorioDragDeltaX < -umbral) {
-          irAPlanta(plantaActualIndex + 1, true);
-        } else if (grimorioDragDeltaX > umbral) {
-          irAPlanta(plantaActualIndex - 1, true);
+      if (grimorioDragEsHorizontal && grimorioDragDireccion !== 0) {
+        const t = grimorioDragDeltaX / grimorioViewportWidth;
+        if (Math.abs(t) > GRIMORIO_UMBRAL) {
+          grimorioIsAnimating = true;
+          completarGiroPagina(grimorioDragDireccion);
         } else {
-          irAPlanta(plantaActualIndex, true);
+          grimorioIsAnimating = true;
+          cancelarGiroPagina();
         }
       }
       grimorioDragEsHorizontal = null;
+      grimorioDragDireccion = 0;
     }
 
     (function inicializarSwipeGrimorio() {
@@ -910,9 +1005,7 @@
       screen.addEventListener('pointercancel', grimorioDragFin);
 
       window.addEventListener('resize', () => {
-        if (document.getElementById('grimorio-screen').classList.contains('active')) {
-          irAPlanta(plantaActualIndex, false);
-        }
+        grimorioViewportWidth = window.innerWidth;
       });
 
       window.addEventListener('keydown', (e) => {
