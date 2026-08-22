@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>El Hogar del Mago</title>
+  <title>El Hogar del Mago | Herbolario mágico y plantas medicinales de Paraguay</title>
+  <meta name="description" content="Una casa interactiva mágica con herbolario, bosque, música y conocimiento. Descubrí plantas medicinales nativas de Paraguay: usos, preparación y propiedades tradicionales.">
+  <link rel="canonical" href="https://TU-DOMINIO-AQUI.vercel.app/">
+  <meta property="og:title" content="El Hogar del Mago">
+  <meta property="og:description" content="Herbolario mágico interactivo con plantas medicinales de Paraguay.">
+  <meta property="og:type" content="website">
   <style>
     :root {
       --bg-dark: #0e0b12;
@@ -127,7 +132,7 @@
       position: relative; overflow: hidden;
       width: 100vw; height: 100vh;
       box-sizing: border-box;
-      cursor: grab; touch-action: pan-x; user-select: none;
+      cursor: grab; touch-action: pan-y; user-select: none;
     }
     .full-screen-media.dragging { cursor: grabbing; }
 
@@ -349,6 +354,10 @@
     <button id="spot-musica" class="hotspot" onclick="abrirSeccion('musica')" aria-label="Abrir Reproductor de Música"></button>
     <button id="spot-conocimiento" class="hotspot" onclick="abrirSeccion('conocimiento')" aria-label="Consultar Conocimiento"></button>
   </main>
+
+  <p style="text-align:center; margin-top:10px; font-size:0.75rem;">
+    <a href="./plantas.html" style="color:#c89f65;">Ver catálogo de plantas medicinales de Paraguay</a>
+  </p>
 
   <div id="modal" class="modal-overlay" onclick="if(event.target.id==='modal') cerrarModal()" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-card">
