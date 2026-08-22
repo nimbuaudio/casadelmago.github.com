@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plantas Medicinales de Paraguay | El Hogar del Mago</title>
+  <meta name="description" content="Catálogo de plantas medicinales nativas de Paraguay: nombre guaraní, nombre científico, propiedades, descripción y usos tradicionales.">
+  <link rel="canonical" href="https://casadelmago-github-com.vercel.app/plantas.html">
+  <style>
+    :root {
+      --bg-dark: #0e0b12;
+      --accent-gold: #c89f65;
+      --accent-gold-hover: #e2b06f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background-color: var(--bg-dark); color: #f3e9dc;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 24px 16px 60px;
+    }
+    .contenedor { max-width: 720px; margin: 0 auto; }
+    a.volver { color: var(--accent-gold); font-size: 0.85rem; text-decoration: none; }
+    a.volver:hover { text-decoration: underline; }
+    h1 { color: var(--accent-gold-hover); font-size: 1.5rem; margin-top: 20px; }
+    p.intro { font-size: 0.9rem; line-height: 1.6; color: #d8c9b3; }
+    .planta {
+      border: 2px solid var(--accent-gold); border-radius: 10px;
+      padding: 18px; margin-bottom: 20px; background: rgba(200,159,101,0.05);
+    }
+    .planta img {
+      width: 100%; max-height: 260px; object-fit: cover; border-radius: 8px;
+      margin-bottom: 12px; display: block;
+    }
+    .planta h2 { color: var(--accent-gold-hover); margin: 0 0 2px; font-size: 1.2rem; }
+    .planta .cientifico { font-style: italic; color: var(--accent-gold); font-size: 0.85rem; margin: 0 0 10px; }
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .badge {
+      font-size: 0.7rem; color: var(--accent-gold-hover); background: rgba(200,159,101,0.14);
+      border: 1px solid var(--accent-gold); padding: 3px 10px; border-radius: 20px;
+    }
+    .planta h3 {
+      font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-gold);
+      border-bottom: 1px solid rgba(200,159,101,0.35); padding-bottom: 4px; margin: 14px 0 6px;
+    }
+    .planta p { font-size: 0.88rem; line-height: 1.55; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="contenedor">
+    <a class="volver" href="./index.html">&larr; Volver a El Hogar del Mago</a>
+    <h1>Plantas Medicinales de Paraguay</h1>
+    <p class="intro">
+      Catálogo de plantas nativas de Paraguay usadas en la medicina tradicional guaraní,
+      con su nombre popular, nombre científico, propiedades y modo de preparación.
+      Este catálogo forma parte del herbolario de <a class="volver" href="./index.html">El Hogar del Mago</a>,
+      un sitio interactivo mágico.
+    </p>
+
+    <article class="planta">
+      <img src="./public/Imagenes/Plantas/kaa-hee.jpg" alt="Kaa He'e, Stevia rebaudiana, arbusto de hojas dulces nativo de Paraguay">
+      <h2>Kaa He'e</h2>
+      <p class="cientifico">Stevia rebaudiana</p>
+      <div class="badges">
+        <span class="badge">Digestivo</span>
+        <span class="badge">Endulzante</span>
+      </div>
+      <h3>Descripción</h3>
+      <p>Arbusto nativo de Paraguay, de hojas dulces usadas tradicionalmente como edulcorante natural.</p>
+      <h3>Usos y preparación</h3>
+      <p>Infusión de hojas secas para regular el azúcar en sangre y aliviar molestias digestivas.</p>
+    </article>
+
+    <article class="planta">
+      <img src="./public/Imagenes/Plantas/cocu.jpg" alt="Cocú, Allophylus edulis, planta silvestre usada en medicina tradicional guaraní">
+      <h2>Cocú</h2>
+      <p class="cientifico">Allophylus edulis</p>
+      <div class="badges">
+        <span class="badge">Antiinflamatorio</span>
+      </div>
+      <h3>Descripción</h3>
+      <p>Planta silvestre usada en la medicina tradicional guaraní para tratar afecciones respiratorias.</p>
+      <h3>Usos y preparación</h3>
+      <p>Decocción de hojas para inhalaciones o infusión como expectorante.</p>
+    </article>
+
+    <article class="planta">
+      <img src="./public/Imagenes/Plantas/burrito.jpg" alt="Burrito, Aloysia polystachya, hierba aromática de huertas paraguayas">
+      <h2>Burrito</h2>
+      <p class="cientifico">Aloysia polystachya</p>
+      <div class="badges">
+        <span class="badge">Digestivo</span>
+        <span class="badge">Relajante</span>
+      </div>
+      <h3>Descripción</h3>
+      <p>Hierba aromática común en huertas paraguayas, apreciada por su aroma y propiedades calmantes.</p>
+      <h3>Usos y preparación</h3>
+      <p>Infusión de hojas frescas o secas después de las comidas, o antes de dormir.</p>
+    </article>
+  </div>
+</body>
+</html>
