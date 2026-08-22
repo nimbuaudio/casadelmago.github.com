@@ -127,7 +127,7 @@
       position: relative; overflow: hidden;
       width: 100vw; height: 100vh;
       box-sizing: border-box;
-      cursor: grab; touch-action: none; user-select: none;
+      cursor: grab; touch-action: pan-x; user-select: none;
     }
     .full-screen-media.dragging { cursor: grabbing; }
 
@@ -165,7 +165,7 @@
     .hotspot-herbolario .hotspot-label {
       font-size: 0.75rem; color: var(--accent-gold-hover); background: rgba(14, 11, 18, 0.75);
       padding: 4px 8px; border-radius: 4px; margin-bottom: 6px; text-align: center;
-      opacity: 0; transition: opacity 0.2s ease;
+      opacity: 0; transition: opacity 0.2s ease; pointer-events: none;
     }
     .hotspot-herbolario:hover .hotspot-label, .hotspot-herbolario:focus-visible .hotspot-label {
       opacity: 1;
@@ -193,6 +193,7 @@
       position: absolute; inset: 0; height: 100%; height: 100dvh;
       overflow: hidden;
       backface-visibility: hidden;
+      transform-style: preserve-3d;
       will-change: transform;
       box-shadow: -6px 0 24px rgba(0,0,0,0.5);
     }
@@ -225,7 +226,7 @@
     .grimorio-img-wrap {
       width: 100%; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden;
       border: 2px solid var(--accent-gold); flex-shrink: 0; margin-bottom: 14px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5); background-color: #120e17;
     }
     .grimorio-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
@@ -267,7 +268,7 @@
     }
     .grimorio-cerrar-btn:hover { background: var(--accent-gold); color: var(--bg-dark); }
 
-    /* Estilos responsivos del reproductor */
+    /* Estilos del reproductor */
     .pixel-player {
       background: #15101d;
       border: 2px solid var(--accent-gold);
@@ -474,7 +475,7 @@
       herbolario: {
         titulo: "🌿 Herbolario",
         contenido: `
-          <img src="./public/Imagenes/herbolario.png" alt="Herbolario" class="modal-img" onerror="console.error('Error al cargar la imagen del herbolario');">
+          <img src="./public/Imagenes/herbolario.png" alt="Herbolario" class="modal-img" onerror="this.style.display='none';">
           <p>Bienvenido al herbolario. Aquí encontrarás pócimas, hierbas curativas y remedios mágicos.</p>
           <button class="acercarse-btn" onclick="abrirHerbolarioScreen()">Acercarse</button>
         `
@@ -662,7 +663,7 @@
       }
     });
 
-    // --- Exploración en primera persona (drag-to-pan sobre imagen panorámica) ---
+    /* --- Exploración en primera persona (drag-to-pan sobre imagen panorámica) --- */
     let panoramaOffsetX = 0;
     let panoramaMinOffset = 0;
     let panoramaIsDragging = false;
@@ -703,7 +704,7 @@
       if (!panoramaIsDragging) return;
       const layer = document.getElementById('herbolario-panorama-layer');
       const delta = e.clientX - panoramaDragStartX;
-      if (Math.abs(delta) > 6) panoramaDragMoved = true;
+      if (Math.abs(delta) > 5) panoramaDragMoved = true;
       panoramaOffsetX = Math.min(0, Math.max(panoramaMinOffset, panoramaStartOffsetX + delta));
       layer.style.transform = `translateX(${panoramaOffsetX}px)`;
     }
@@ -741,9 +742,7 @@
       window.addEventListener('resize', recalcPanoramaBounds);
     });
 
-    // --- Grimorio de plantas medicinales ---
-    // Cada planta va acá: imagen, nombre, científico, badges y textos.
-    // Agregá tantas como quieras siguiendo el mismo formato.
+    /* --- Grimorio de plantas medicinales --- */
     const plantas = [
       {
         imagen: "./public/Imagenes/Plantas/kaa-hee.jpg",
@@ -795,7 +794,7 @@
           <div class="grimorio-card-fold"></div>
           <div class="grimorio-card-content">
             <div class="grimorio-img-wrap">
-              <img src="${p.imagen}" alt="${p.nombre}" loading="lazy">
+              <img src="${p.imagen}" alt="${p.nombre}" loading="lazy" onerror="this.style.opacity='0'">
             </div>
             <div class="grimorio-badges">${badgesHtml}</div>
             <h3 class="grimorio-nombre">${p.nombre}</h3>
@@ -821,8 +820,8 @@
       grimorioConstruido = true;
     }
 
-    const GRIMORIO_DURACION = 460; // ms
-    const GRIMORIO_UMBRAL = 0.28; // 28% del ancho de pantalla para confirmar el giro
+    const GRIMORIO_DURACION = 460;
+    const GRIMORIO_UMBRAL = 0.28;
 
     let grimorioCards = [];
     let grimorioIsAnimating = false;
@@ -851,8 +850,6 @@
       });
     }
 
-    // direccion: 1 = pasar a la siguiente (gira desde la derecha, bisagra a la izquierda)
-    //           -1 = volver a la anterior (gira desde la izquierda, bisagra a la derecha)
     function completarGiroPagina(direccion) {
       if (plantas.length < 2) return;
       grimorioIsAnimating = true;
@@ -910,18 +907,13 @@
       actualizarCapasGrimorio();
       actualizarDotsGrimorio();
       document.getElementById('grimorio-screen').classList.add('active');
-
-      const fondoTest = new Image();
-      fondoTest.onload = () => console.log('✅ Fondo del grimorio cargado correctamente');
-      fondoTest.onerror = () => console.error('❌ No se encontró ./public/Imagenes/grimorio-fondo.webp — revisá que el archivo esté en esa carpeta de tu proyecto');
-      fondoTest.src = './public/Imagenes/grimorio-fondo.webp';
     }
 
     function cerrarGrimorio() {
       document.getElementById('grimorio-screen').classList.remove('active');
     }
 
-    // --- Deslizamiento (swipe) para pasar la página con el dedo ---
+    /* --- Deslizamiento (swipe) para pasar la página --- */
     let grimorioDragStartX = 0;
     let grimorioDragStartY = 0;
     let grimorioDragDeltaX = 0;
